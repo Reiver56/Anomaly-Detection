@@ -16,7 +16,7 @@ vector<vector<string>> getStreamCovariance(){
     
     try {
         // Connessione al database
-        pqxx::connection C("dbname = anomaly-detection user = postgres password = matteus67 hostaddr = 127.0.0.1 port = 5432");
+        pqxx::connection C("dbname = anomaly-detection user = postgres password = DA_INSERIRE hostaddr = 127.0.0.1 port = 5432");
         if (C.is_open()) {
             std::cout << "Connessione al database riuscita: " << C.dbname() << std::endl;
         } else {
