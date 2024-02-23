@@ -1,0 +1,108 @@
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+#include <cctype>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cstdlib> // per atoi
+#include <hiredis/hiredis.h>
+#include "read_csv.cpp"
+#include "set-stream.cpp"
+#include <chrono>
+
+
+using namespace std::chrono;
+using namespace std;
+const string filename = "../dataset/test.csv";
+const string targetSensor = "SAC0";
+
+int main() {
+    
+    auto start = high_resolution_clock::now();
+    int tempStart = 0;
+    // faccio inserire all'utente il valore della finestra temporale
+    cout << "Inserire il valore della finestra temporale: ";
+    
+
+    long unsigned int tempWindow = 10; // questo valore può essere configurato e corrisponde alla grandezza della finestra
+    int va = system("redis-server");
+    // connessione a redis
+    redisContext *c = redisConnect("127.0.0.1", 6379);
+    if (c == NULL || c->err) {
+        if (c) {
+            cout << "Errore di connessione: " << c->errstr << endl;
+        } else {
+            cout << "Can't allocate redis context" << endl;
+        }
+        exit(1);
+    }
+    va = system("redis-cli FLUSHDB"); // svuto interamente il database di redis per creare un nuovo test
+
+    // mando in una stream di redis i nomi la variabile tempWindow
+    string streamKey = "stream_size";
+    string command = "XADD " + streamKey + " * tempWindow " + to_string(tempWindow) + " targetSensor " + targetSensor;
+    redisReply *reply = (redisReply *)redisCommand(c, command.c_str());
+    if (reply == NULL) {
+        cout << "Errore nell'esecuzione del comando" << endl;
+        exit(1);
+    }
+    freeReplyObject(reply);
+
+    //cout << "Connected to redis" << endl;
+    // fine connessione a redis
+    cout << "Arriva qui" << endl;
+    vector<vector<string>> data = read_csv(filename);
+    vector<vector<string>> dataWindow;
+    // inserisco in dataWindow i dati con targetSensor == "SAC7"
+    for (long unsigned int i = 0; i < data.size(); i++){
+        if (data[i][1] == targetSensor){
+            dataWindow.push_back(data[i]);
+            
+        }
+    }
+    
+
+    // faccio un array di stringhe dove mettere tutte le stream (cioè i nomi delle stream di redis)
+    vector<string> streamNames;
+
+    cout << dataWindow.size() << endl;
+    // inserisco in dataWindow le righe che al data[n][0] == tempWindow &&  data[n][1] == targetSensor
+    
+    while(tempWindow < dataWindow.size()) {
+        // controllo i valori della finestra e li inserisco in dataWindow -> per mettere ogni finestra in uno stream di 
+        string streamName = "mystream" + to_string(tempStart);
+        setStream(dataWindow, streamName, tempStart, tempWindow, c);
+        streamNames.push_back(streamName);
+        //shift della finestra
+        tempStart ++; 
+        tempWindow ++;    
+        //--------------------   
+        }
+
+    // mando a in una stream di redis i nomi degli stream presenti in streamNames 
+    for (long unsigned int i = 0; i < streamNames.size(); i++) {
+        string streamKey = "stream_names";
+        string command = "XADD " + streamKey + " * streamName " + streamNames[i];
+        redisReply *reply = (redisReply *)redisCommand(c, command.c_str());
+        if (reply == NULL) {
+            cout << "Errore nell'esecuzione del comando" << endl;
+            exit(1);
+        }
+        freeReplyObject(reply);
+    }
+    
+   
+
+    /*
+    for (long unsigned int i = 0; i < streamNames.size(); i++) {
+        cout << streamNames[i] << endl;
+    }
+    */
+
+    
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>(stop - start);
+    cout << "Tempo di esecuzione: " << duration.count() << " secondi" << endl;
+    return va;
+}
