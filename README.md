@@ -34,7 +34,7 @@ Progetto per il corso di Ingegneria del Software, del corso di Laurea in Informa
   DB_USER=inserireilpropriousername
   DB_PASSWORD=inserirelapropriapassword
   ```
-* Una volta seguiti questi passaggi entrando in ./Test-Generator/src/main.cpp, si potranno aggiungere le coppie di sensori che si desiderano nel vettore targetSensors e modificare la variabile tempWindow (finestra temporale configurabile).
+* Una volta seguiti questi passaggi entrando in ./Test-Generator/src/main.cpp, si potranno aggiungere le coppie di sensori, che si desiderano, nel vettore targetSensors e modificare la variabile tempWindow (finestra temporale configurabile).
 
 
 Una volta seguiti questi passaggi si può passare all'esecuzione.
