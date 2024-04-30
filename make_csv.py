@@ -18,7 +18,7 @@ conn = psycopg2.connect(
     host="localhost",
     database="anomaly_detection",
     user="postgres",
-    password="matteus67"
+    password=""
 )
 
 # query per estrarre i dati
