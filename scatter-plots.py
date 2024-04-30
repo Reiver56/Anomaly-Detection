@@ -13,7 +13,7 @@ def scatter_plot_average():
         host="localhost",
         database="anomaly_detection",
         user="postgres",
-        password="matteus67"
+        password=""
     )
     # Create a cursor object
     cur = conn.cursor()
@@ -55,7 +55,7 @@ def scatter_plot_covariance():
         host="localhost",
         database="anomaly_detection",
         user="postgres",
-        password="matteus67"
+        password=""
     )
     # Create a cursor object
     cur = conn.cursor()
